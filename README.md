@@ -6,6 +6,13 @@ No more opening Claude → Settings → Usage every time. A small gauge sits nex
 
 <p align="center"><img src="docs/images/menu-bar.png" width="520" alt="Claude Usage Bar in the macOS menu bar, showing 58% · 75%"></p>
 
+<p align="center">
+  <img src="docs/images/menu.png" height="420" alt="Click the gauge: current session and weekly limits with reset times">
+  &nbsp;&nbsp;
+  <img src="docs/images/options.png" height="420" alt="Options: show weekly % in the menu bar, alerts, open at login">
+</p>
+<p align="center"><sub>Click the gauge for your session and weekly limits, with exactly when they reset · Options right in the menu</sub></p>
+
 - 🟢 **Always visible** — your current session % (and, if you like, your weekly %) next to the clock
 - 🟠 **Warns you early** — turns amber at 75% and red at 90%
 - 🔔 **Notifications** at 80% and 95%, so you're never cut off mid-task
