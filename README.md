@@ -121,18 +121,7 @@ The first time it opens, the menu drops down by itself and asks you to connect. 
 
 <p align="center"><img src="docs/images/setup.png" width="425" alt="The connect menu on first launch"></p>
 
-### Option A — Use Claude Code on This Mac *(recommended if you use Claude Code)*
-
-1. Click **Use Claude Code on This Mac**.
-2. macOS asks whether **Claude Usage** may use the "Claude Code-credentials" item in your keychain. Type your Mac password and click **Always Allow**.
-
-   <img src="docs/images/keychain.png" width="420" alt="macOS keychain prompt — click Always Allow">
-
-That's it — your usage appears within a few seconds.
-
-> Don't use Claude Code? Skip to Option B. Clicking "Always Allow" (not just "Allow") stops the question from coming back every minute.
-
-### Option B — Sign In to claude.ai
+### Option A — Sign In to claude.ai *(recommended)*
 
 1. Click **Sign In to claude.ai…**. A small window opens with claude.ai's normal sign-in page.
 2. Sign in **with your email address** (Claude emails you a code or link).
@@ -140,9 +129,20 @@ That's it — your usage appears within a few seconds.
 
 > **"Continue with Google" may not work** in this window — Google blocks sign-ins from small embedded windows. Use your email instead, or Option C.
 
+### Option B — Use Claude Code on This Mac *(if you use Claude Code every day)*
+
+1. Click **Use Claude Code on This Mac**.
+2. macOS asks whether **Claude Usage** may use the "Claude Code-credentials" item in your keychain. Type your Mac password and click **Always Allow**.
+
+   <img src="docs/images/keychain.png" width="420" alt="macOS keychain prompt — click Always Allow">
+
+That's it — your usage appears within a few seconds. Clicking **Always Allow** (not just Allow) stops the question from coming back every minute.
+
+> **Only if you use Claude Code regularly.** Claude Code's sign-in lasts a few hours and renews itself only while you use Claude Code. If you go a while without it, the menu fades your last numbers and offers **Renew in Terminal…** (starts Claude Code for you; type `/exit` once it has loaded) or **Switch to claude.ai Sign-In…**.
+
 ### Option C — Paste Session Key *(advanced)*
 
-Use this if Option B doesn't work for you. You'll copy a value from claude.ai in your normal browser.
+Use this if Option A doesn't work for you (for example, you sign in to Claude with Google). You'll copy a value from claude.ai in your normal browser.
 
 **In Chrome, Arc or Edge:**
 1. Go to [claude.ai](https://claude.ai) and make sure you're signed in.
@@ -220,7 +220,7 @@ Click the gauge → **Options**. A tick means it's on.
 
 Your settings and sign-in are kept. If you built it yourself, run `./build.sh` from the new source instead.
 
-> After an update macOS may ask about keychain access again (Option A) — click **Always Allow** once more.
+> If you connected with Claude Code (Option B), macOS may ask about keychain access again after an update — click **Always Allow** once more.
 
 ---
 
@@ -277,9 +277,15 @@ chmod +x build.sh
 </details>
 
 <details>
+<summary><b>The menu says "Claude Code's sign-in has expired"</b></summary>
+
+Claude Code renews its sign-in only while you use it. Click the gauge and choose **Renew in Terminal…**: Terminal opens and starts Claude Code; once it has loaded, type `/exit`. Your numbers come back within a minute. If you rarely use Claude Code, choose **Switch to claude.ai Sign-In…** instead, so it doesn't happen again.
+</details>
+
+<details>
 <summary><b>The menu says "Claude Code isn't signed in on this Mac"</b></summary>
 
-Either sign in to Claude Code first (run `claude` in Terminal and follow the steps), or choose **Sign In to claude.ai…** or **Paste Session Key…** instead.
+Either sign in to Claude Code first (run `claude` in Terminal and follow the steps), or choose **Sign In to claude.ai…** (recommended) or **Paste Session Key…** instead.
 </details>
 
 <details>
@@ -297,7 +303,7 @@ Anthropic sometimes limits how often usage can be checked. The app keeps showing
 <details>
 <summary><b>It says I'm signed out of claude.ai</b></summary>
 
-claude.ai sessions expire after a while. Connect again with **Sign In to claude.ai…** or paste a fresh session key. Option A (Claude Code) doesn't have this problem as long as you use Claude Code now and then.
+claude.ai sessions last for weeks but do eventually end. Connect again with **Sign In to claude.ai…** or paste a fresh session key.
 </details>
 
 ---
@@ -305,7 +311,7 @@ claude.ai sessions expire after a while. Connect again with **Sign In to claude.
 ## 9. Privacy
 
 - Everything runs **on your Mac**. There's no server, account or tracking.
-- The app only talks to Anthropic: `api.anthropic.com` (Option A) or `claude.ai` (Options B and C), to read your usage — the same numbers as claude.ai → Settings → Usage.
+- The app only talks to Anthropic: `claude.ai` (Options A and C) or `api.anthropic.com` (Option B), to read your usage — the same numbers as claude.ai → Settings → Usage.
 - Your sign-in stays where it already lives: Claude Code's sign-in stays in your macOS keychain, and claude.ai sign-ins are kept by the app on this Mac only.
 
 ---

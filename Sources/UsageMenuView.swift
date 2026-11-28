@@ -21,15 +21,18 @@ struct UsageMenuView: View {
                         .foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if let session = store.session {
-                    UsageRow(title: "Current Session", window: session, emphasized: true)
-                }
-                if !store.weekly.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionHeader("Weekly Limits")
-                        ForEach(store.weekly) { UsageRow(title: $0.title, window: $0, emphasized: false) }
+                VStack(alignment: .leading, spacing: 10) {
+                    if let session = store.session {
+                        UsageRow(title: "Current Session", window: session, emphasized: true)
+                    }
+                    if !store.weekly.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            SectionHeader("Weekly Limits")
+                            ForEach(store.weekly) { UsageRow(title: $0.title, window: $0, emphasized: false) }
+                        }
                     }
                 }
+                .opacity(store.claudeCodeExpired ? 0.45 : 1) // last known numbers, faded while out of date
                 if let account = store.account {
                     Text(footer(account))
                         .font(.system(size: 11))

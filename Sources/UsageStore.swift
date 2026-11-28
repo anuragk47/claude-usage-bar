@@ -34,6 +34,8 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
     @Published private(set) var account: String?
     @Published private(set) var lastUpdated: Date?
     @Published private(set) var isRefreshing = false
+    /// Claude Code's saved sign-in has lapsed (it only renews while Claude Code is used).
+    @Published private(set) var claudeCodeExpired = false
     @Published var setupMessage: String?
 
     var source: Source? {
@@ -108,6 +110,42 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
         refresh()
     }
 
+    /// Opens Terminal running `claude`. Starting Claude Code renews its saved sign-in; this app
+    /// re-reads it on its next refresh (within a minute), so nothing else is needed.
+    func renewClaudeCodeInTerminal() {
+        let script = """
+        #!/bin/zsh -il
+        clear
+        if ! command -v claude >/dev/null 2>&1; then
+          echo "Claude Code isn't installed on this Mac, so there's nothing to renew."
+          echo "Use \"Switch to claude.ai Sign-In\" in the Claude Usage menu instead."
+          exit 0
+        fi
+        echo "Starting Claude Code to renew its sign-in for Claude Usage."
+        echo "Once it has loaded, type /exit and press Return. You can then close this window."
+        echo
+        claude
+        """
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Renew Claude Code sign-in.command")
+        do {
+            try script.write(to: url, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+            if let terminal = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal") {
+                NSWorkspace.shared.open([url], withApplicationAt: terminal, configuration: .init())
+            } else {
+                NSWorkspace.shared.open(url)
+            }
+        } catch {
+            NSSound.beep()
+        }
+    }
+
+    /// Leaves the Claude Code sign-in and connects with claude.ai instead.
+    func switchToClaudeAI() {
+        signOut()
+        signInWithClaudeAI()
+    }
+
     func signInWithClaudeAI() {
         setupMessage = nil
         source = .web
@@ -141,6 +179,7 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
     }
 
     func signOut() {
+        claudeCodeExpired = false
         credentials = nil
         windows = []
         account = nil
@@ -188,7 +227,8 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
             guard let creds = credentials else { return }
             if creds.isExpired {
                 credentials = nil
-                fail("Claude Code's sign-in has expired. Open Claude Code once (it renews itself), then refresh.")
+                claudeCodeExpired = true
+                fail(windows.isEmpty ? "Claude Code's sign-in has expired. It renews itself only when you use Claude Code." : "Claude Code's sign-in has expired. It renews itself only when you use Claude Code. Showing your last numbers.")
                 return
             }
             var request = URLRequest(url: URL(string: "https://api.anthropic.com/api/oauth/usage")!)
@@ -200,7 +240,8 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
             let code = (response as? HTTPURLResponse)?.statusCode ?? 0
             if code == 401 || code == 403 {
                 credentials = nil
-                fail("Claude Code's sign-in was rejected. Open Claude Code once to renew it, then refresh.")
+                claudeCodeExpired = true
+                fail(windows.isEmpty ? "Claude Code's sign-in has expired. It renews itself only when you use Claude Code." : "Claude Code's sign-in has expired. It renews itself only when you use Claude Code. Showing your last numbers.")
                 return
             }
             guard code == 200, let usage = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
@@ -301,6 +342,7 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
         backoffUntil = nil
         backoffStep = 0
         state = .ok
+        claudeCodeExpired = false
         setupMessage = nil
         login.close()
         notifyIfNeeded()

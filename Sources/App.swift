@@ -50,6 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var usageView: NSHostingView<AnyView>!
     private var bag = Set<AnyCancellable>()
     private var builtForSetup: Bool?
+    private var builtExpired: Bool?
 
     private static let menuWidth: CGFloat = 280
 
@@ -71,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 guard let self else { return }
                 self.updateButton()
                 self.fitUsageView()
-                if self.builtForSetup != (self.store.source == nil) { self.rebuildMenu() }
+                if self.builtForSetup != (self.store.source == nil) || self.builtExpired != self.store.claudeCodeExpired { self.rebuildMenu() }
             }
             .store(in: &bag)
         NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
@@ -155,6 +156,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private func rebuildMenu() {
         let setup = store.source == nil
         builtForSetup = setup
+        builtExpired = store.claudeCodeExpired
         menu.removeAllItems()
 
         let usageItem = NSMenuItem()
@@ -165,17 +167,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
         if setup {
             // Three ways to connect, best first, each with a one-line explanation underneath.
-            option("Use Claude Code on This Mac",
-                   detail: "Recommended if you use Claude Code. macOS asks once for keychain access; choose Always Allow.",
-                   #selector(useClaudeCode))
             option("Sign In to claude.ai…",
-                   detail: "Opens claude.ai's sign-in page. Use your email; Google sign-in may not work there.",
+                   detail: "Recommended. Opens claude.ai's sign-in page; use your email, as Google sign-in may not work there.",
                    #selector(signInWithClaudeAI))
+            option("Use Claude Code on This Mac",
+                   detail: "Best if you use Claude Code every day: its sign-in lapses when you don't. macOS asks once for keychain access; choose Always Allow.",
+                   #selector(useClaudeCode))
             option("Paste Session Key…",
                    detail: "Advanced: copy the sessionKey cookie from claude.ai in your browser.",
                    #selector(pasteSessionKey))
         } else {
             add("Refresh", #selector(refresh), key: "r")
+            if store.claudeCodeExpired {
+                option("Renew in Terminal…",
+                       detail: "Starts Claude Code in Terminal, which renews its sign-in. Type /exit once it has loaded.",
+                       #selector(renewClaudeCode))
+                option("Switch to claude.ai Sign-In…",
+                       detail: "Doesn't lapse when you don't use Claude Code.",
+                       #selector(switchToClaudeAI))
+            }
         }
         menu.addItem(.separator())
 
@@ -233,6 +243,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func refresh() { store.refreshNow() }
     @objc private func useClaudeCode() { store.useClaudeCode() }
+    @objc private func renewClaudeCode() { store.renewClaudeCodeInTerminal() }
+    @objc private func switchToClaudeAI() { store.switchToClaudeAI() }
     @objc private func signInWithClaudeAI() { store.signInWithClaudeAI() }
     @objc private func pasteSessionKey() {
         // Let the menu finish closing before the dialog appears.
