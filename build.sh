@@ -27,6 +27,7 @@ swiftc -O -parse-as-library \
   Sources/*.swift \
   -o "$APP/Contents/MacOS/ClaudeUsageBar"
 cp Info.plist "$APP/Contents/Info.plist"
+cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 codesign --force --sign - "$APP" >/dev/null
 
 echo "Quitting the running copy…"
@@ -42,6 +43,7 @@ rm -rf "$DEST" "/Applications/Claude Usage Bar.app"
 ditto "$APP" "$DEST"
 "$LSREGISTER" -u "$APP" >/dev/null 2>&1 || true
 "$LSREGISTER" -f "$DEST" >/dev/null 2>&1 || true
+touch "$DEST"  # nudge Finder to show the current icon
 
 # One-time tidy-up: forget copies left by earlier builds (old build/ folders and the old name).
 "$LSREGISTER" -dump 2>/dev/null \

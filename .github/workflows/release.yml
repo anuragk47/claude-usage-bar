@@ -1,0 +1,43 @@
+# Builds the .dmg on GitHub's Macs and attaches it to a GitHub Release.
+#
+# To publish a release: push a tag like v1.0.0
+#   git tag v1.0.0 && git push origin v1.0.0
+# or run this workflow by hand from the Actions tab (it then only uploads the .dmg as a
+# build artifact, without making a release).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the .dmg
+        run: scripts/make-dmg.sh "${GITHUB_REF_NAME}"
+
+      - name: Keep the .dmg as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeUsage-dmg
+          path: dist/*.dmg
+
+      - name: Publish the GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+          generate_release_notes: true
+          body: |
+            **Download `ClaudeUsage.dmg` below**, open it and drag Claude Usage to Applications.
+
+            The first time you open it, macOS will say it can't verify the app. Go to
+            **System Settings → Privacy & Security**, scroll down and click **Open Anyway**.
+            You only need to do this once. Full guide: [README](https://github.com/${{ github.repository }}#readme)

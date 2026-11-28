@@ -1,6 +1,10 @@
-# Claude Usage Bar
+<p align="center"><img src="docs/images/icon.png" width="128" alt="Claude Usage app icon"></p>
 
-**See how much of your Claude limit you've used — right in your Mac's menu bar.**
+<h1 align="center">Claude Usage Bar</h1>
+
+<p align="center"><b>See how much of your Claude limit you've used — right in your Mac's menu bar.</b></p>
+
+<p align="center"><a href="https://github.com/anuragk47/claude-usage-bar/releases/latest/download/ClaudeUsage.dmg"><b>⬇︎ Download for macOS</b></a> · free · open source · macOS 13+</p>
 
 No more opening Claude → Settings → Usage every time. A small gauge sits next to your clock and fills up as you use your 5-hour session. Click it to see your session and weekly limits, and when they reset.
 
@@ -39,56 +43,62 @@ No more opening Claude → Settings → Usage every time. A small gauge sits nex
 
 ## 1. What you need
 
-- A Mac running **macOS 13 Ventura or later** (Apple menu  → About This Mac shows your version)
+- A Mac running **macOS 13 Ventura or later** (Apple menu  → About This Mac shows your version). Works on Apple Silicon and Intel Macs.
 - A **paid Claude plan** (Pro, Max or Team) — these are the plans with session and weekly limits
-- About **5 minutes**
-
-You don't need to know how to code. You'll copy and paste two commands into an app called Terminal, and this guide shows you exactly what to type.
+- About **2 minutes**
 
 ---
 
 ## 2. Install
 
-### Step 1 — Download the app
+### Step 1 — Download
 
-1. At the top of this page, click the green **Code** button, then **Download ZIP**.
-2. Open your **Downloads** folder and double-click **claude-usage-bar-main.zip** to unzip it.
-   You'll now have a folder called **claude-usage-bar-main**.
+<p align="center"><a href="https://github.com/anuragk47/claude-usage-bar/releases/latest/download/ClaudeUsage.dmg"><b>⬇︎ Download ClaudeUsage.dmg</b></a></p>
 
-### Step 2 — Open Terminal
+Or go to the [Releases page](https://github.com/anuragk47/claude-usage-bar/releases/latest) and click **ClaudeUsage.dmg** under *Assets*.
 
-Press **⌘ Command + Space**, type **Terminal**, and press **Return**. A window with a blinking cursor opens.
+### Step 2 — Drag it to Applications
 
-### Step 3 — Install Apple's developer tools (one time only)
+Open **ClaudeUsage.dmg** from your Downloads folder. In the window that appears, drag **Claude Usage** onto the **Applications** folder.
 
-The app is built on your own Mac, which needs Apple's free command-line tools. Copy this line, paste it into Terminal and press **Return**:
+<p align="center"><img src="docs/images/dmg.png" width="560" alt="Drag Claude Usage onto the Applications folder"></p>
 
-```bash
-xcode-select --install
-```
+Then close the window and eject the disk image (the ⏏ next to "Claude Usage" in Finder's sidebar).
 
-- If a window pops up, click **Install** and wait for it to finish (a few minutes).
-- If Terminal says **"already installed"**, you're all set — go to the next step.
+### Step 3 — Open it the first time
 
-### Step 4 — Build and install
+Open **Applications** and double-click **Claude Usage**. macOS will stop it with this message, because the app isn't from the App Store or a registered Apple developer:
 
-1. In Terminal, type `cd` followed by a **space** (don't press Return yet).
-2. **Drag the `claude-usage-bar-main` folder** from Finder into the Terminal window. Its location appears after `cd`.
-3. Press **Return**.
-4. Now copy, paste and press **Return**:
+<p align="center"><img src="docs/images/notopened.png" width="330" alt="“Claude Usage” Not Opened — click Done"></p>
 
-   ```bash
-   ./build.sh
-   ```
+This is expected. Click **Done** (not Move to Trash), then:
 
-After about 30 seconds you'll see **"Installed to /Applications/Claude Usage.app"**, and a gauge appears in your menu bar.
+1. Open **System Settings** (Apple menu  → System Settings) and click **Privacy & Security** in the sidebar.
+2. Scroll down to **Security**. You'll see **"Claude Usage" was blocked to protect your Mac.** Click **Open Anyway**.
 
-<p align="center"><img src="docs/images/terminal.png" width="620" alt="Terminal after a successful install"></p>
+   <p align="center"><img src="docs/images/openanyway.png" width="600" alt="Privacy & Security — click Open Anyway"></p>
 
-> **Comfortable with git?** You can do steps 1–4 in one go:
-> ```bash
-> git clone https://github.com/anuragk47/claude-usage-bar.git && cd claude-usage-bar && ./build.sh
-> ```
+3. Confirm with **Open Anyway** again and your Mac password or Touch ID.
+
+You only do this once. A gauge appears in your menu bar and the menu opens so you can connect your account.
+
+> **Why the warning?** Apple charges developers $99 a year to sign and notarize apps. This free app is open source instead: you can read every line of code in this repo, and the download is built from it automatically by GitHub.
+
+<details>
+<summary><b>Prefer to build it yourself from the source code?</b></summary>
+
+This needs Apple's free command-line tools and Terminal, but no security warning.
+
+1. Click the green **Code** button at the top of this page → **Download ZIP**, and double-click the ZIP to unzip it.
+2. Open **Terminal** (⌘ Space, type *Terminal*, Return).
+3. Install Apple's command-line tools once: paste `xcode-select --install`, press Return and click **Install** (skip if it says "already installed").
+4. Type `cd ` (with a space), drag the unzipped folder into the Terminal window, and press Return.
+5. Paste `./build.sh` and press Return. After about 30 seconds the gauge appears in your menu bar.
+
+<p align="center"><img src="docs/images/terminal.png" width="620" alt="Terminal after a successful build"></p>
+
+Or in one line: `git clone https://github.com/anuragk47/claude-usage-bar.git && cd claude-usage-bar && ./build.sh`
+</details>
 
 ---
 
@@ -191,10 +201,11 @@ Click the gauge → **Options**. A tick means it's on.
 
 ## 6. Updating
 
-1. Download the new ZIP (step 1 of [Install](#2-install)) and unzip it.
-2. In Terminal, `cd` into the new folder (drag it in, as before) and run `./build.sh` again.
+1. Click the gauge → **Quit Claude Usage**.
+2. Download the latest **[ClaudeUsage.dmg](https://github.com/anuragk47/claude-usage-bar/releases/latest/download/ClaudeUsage.dmg)** and drag Claude Usage to Applications again. Choose **Replace** when asked.
+3. Open it. You may need to click **Open Anyway** once more (step 3 of [Install](#2-install)).
 
-The script quits the old version and replaces it. Your settings and sign-in are kept.
+Your settings and sign-in are kept. If you built it yourself, run `./build.sh` from the new source instead.
 
 > After an update macOS may ask about keychain access again (Option A) — click **Always Allow** once more.
 
@@ -221,13 +232,29 @@ On MacBooks with a notch, macOS hides menu bar icons that don't fit. Quit a few 
 </details>
 
 <details>
-<summary><b>Terminal says "swiftc not found" or "xcrun: error"</b></summary>
+<summary><b>I don't see "Open Anyway" in Privacy & Security</b></summary>
+
+It only appears for about an hour after you tried to open the app. Double-click **Claude Usage** in Applications again, click **Done**, then go straight back to **System Settings → Privacy & Security** and scroll down.
+</details>
+
+<details>
+<summary><b>macOS says the app "is damaged and can't be opened"</b></summary>
+
+This sometimes happens with downloaded apps that aren't notarized. Open Terminal and paste this, then press Return and open the app again:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Claude Usage.app"
+```
+</details>
+
+<details>
+<summary><b>Terminal says "swiftc not found" or "xcrun: error"</b> (building from source)</summary>
 
 Apple's developer tools aren't installed. Run `xcode-select --install`, click **Install**, wait for it to finish, then run `./build.sh` again.
 </details>
 
 <details>
-<summary><b>Terminal says "permission denied: ./build.sh"</b></summary>
+<summary><b>Terminal says "permission denied: ./build.sh"</b> (building from source)</summary>
 
 Run this once, then try again:
 
@@ -272,7 +299,7 @@ claude.ai sessions expire after a while. Connect again with **Sign In to claude.
 
 ## For developers
 
-A native AppKit + SwiftUI menu bar app (`NSStatusItem` with an `NSMenu`), no dependencies and no Xcode project — `build.sh` compiles `Sources/*.swift` with `swiftc`, ad-hoc signs the bundle and installs it.
+A native AppKit + SwiftUI menu bar app (`NSStatusItem` with an `NSMenu`), no dependencies and no Xcode project — `swiftc` compiles `Sources/*.swift` and the bundle is ad-hoc signed.
 
 | File | What's in it |
 |---|---|
@@ -280,6 +307,11 @@ A native AppKit + SwiftUI menu bar app (`NSStatusItem` with an `NSMenu`), no dep
 | `Sources/UsageMenuView.swift` | The usage section at the top of the menu (SwiftUI) |
 | `Sources/UsageStore.swift` | Fetching usage (Claude Code keychain token or claude.ai session), parsing, back-off, notifications, sign-in window |
 | `build.sh` | Builds and installs to `/Applications` |
+| `scripts/make-dmg.sh` | Builds a universal (Apple Silicon + Intel) app and `dist/ClaudeUsage.dmg` |
+| `.github/workflows/release.yml` | On a `v*` tag, builds the .dmg on GitHub's Macs and attaches it to a Release |
+| `Resources/` | App icon (`AppIcon.icns`, with its `AppIcon.svg` source) |
+
+To publish a new version: `git tag v1.0.1 && git push origin v1.0.1`.
 
 Issues and pull requests are welcome.
 
