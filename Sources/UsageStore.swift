@@ -526,11 +526,15 @@ enum Format {
     }
 }
 
-/// The one window this app ever shows: claude.ai's own sign-in page.
+/// The sign-in window: claude.ai's own sign-in page, plus any pop-up it opens
+/// ("Continue with Google" and "Continue with Apple" sign in through a pop-up window
+/// that reports back to the page that opened it, so pop-ups must be real windows).
 @MainActor
 final class LoginController: NSObject, WKNavigationDelegate, WKUIDelegate, NSWindowDelegate {
     weak var store: UsageStore?
     private var window: NSWindow?
+    private var signInWeb: WKWebView?
+    private var popups: [WKWebView: NSWindow] = [:]
     var isOpen: Bool { window != nil }
 
     func show() {
@@ -541,43 +545,90 @@ final class LoginController: NSObject, WKNavigationDelegate, WKUIDelegate, NSWin
         }
         let config = WKWebViewConfiguration()
         config.websiteDataStore = .default()
+        config.preferences.javaScriptCanOpenWindowsAutomatically = true
         let web = WKWebView(frame: .zero, configuration: config)
         web.customUserAgent = UsageStore.browserUA
         web.navigationDelegate = self
         web.uiDelegate = self
         web.load(URLRequest(url: URL(string: "https://claude.ai/login")!))
+        signInWeb = web
 
-        let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 700),
-                           styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
-        win.title = "Sign in to Claude"
-        // Light mode for this window only: in dark mode, Google's sign-in prompt (drawn inside
-        // claude.ai's page) gets a white box behind it because the two disagree on light/dark.
-        win.appearance = NSAppearance(named: .aqua)
-        win.contentView = web
-        win.isReleasedWhenClosed = false
-        win.delegate = self
+        let win = makeWindow(title: "Sign in to Claude", size: NSSize(width: 460, height: 700), content: web)
         win.center()
         window = win
         NSApp.activate(ignoringOtherApps: true)
         win.makeKeyAndOrderFront(nil)
     }
 
-    func close() { window?.close() }
+    func close() {
+        for popup in popups.values { popup.close() }
+        window?.close()
+    }
+
+    private func makeWindow(title: String, size: NSSize, content: WKWebView) -> NSWindow {
+        let win = NSWindow(contentRect: NSRect(origin: .zero, size: size),
+                           styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
+        win.title = title
+        // Light mode for these windows only: in dark mode, Google's sign-in prompt (drawn inside
+        // claude.ai's page) gets a white box behind it because the two disagree on light/dark.
+        win.appearance = NSAppearance(named: .aqua)
+        win.contentView = content
+        win.isReleasedWhenClosed = false
+        win.delegate = self
+        return win
+    }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        if let path = webView.url?.path, !path.hasPrefix("/login"), !path.hasPrefix("/magic-link") {
+        // Signed in once the main window is back on claude.ai past its sign-in screens.
+        guard webView === signInWeb, let url = webView.url,
+              url.host == "claude.ai" || url.host?.hasSuffix(".claude.ai") == true else { return }
+        let path = url.path
+        if !path.hasPrefix("/login"), !path.hasPrefix("/magic-link") {
             store?.reloadWeb()
         }
     }
 
+    /// A page asked for a pop-up (Google or Apple sign-in): open it in its own window. WebKit
+    /// loads the request into the returned view and keeps its link to the page that opened it.
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration,
                  for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-        webView.load(navigationAction.request)
-        return nil
+        let popup = WKWebView(frame: .zero, configuration: configuration)
+        popup.customUserAgent = UsageStore.browserUA
+        popup.navigationDelegate = self
+        popup.uiDelegate = self
+        let width = max(windowFeatures.width?.doubleValue ?? 500, 420)
+        let height = max(windowFeatures.height?.doubleValue ?? 640, 520)
+        let win = makeWindow(title: "Sign in", size: NSSize(width: width, height: height), content: popup)
+        if let parent = webView.window {
+            win.setFrameTopLeftPoint(NSPoint(x: parent.frame.minX + 40, y: parent.frame.maxY - 40))
+        } else {
+            win.center()
+        }
+        popups[popup] = win
+        win.makeKeyAndOrderFront(nil)
+        return popup
+    }
+
+    /// The page closed its own window (a pop-up finishing, usually).
+    func webViewDidClose(_ webView: WKWebView) {
+        if let popup = popups[webView] {
+            popup.close()
+        } else if webView === signInWeb {
+            window?.close()
+        }
     }
 
     func windowWillClose(_ notification: Notification) {
+        guard let closing = notification.object as? NSWindow else { return }
+        if let entry = popups.first(where: { $0.value === closing }) {
+            popups[entry.key] = nil
+            return
+        }
+        guard closing === window else { return }
+        for popup in popups.values { popup.close() }
+        popups.removeAll()
         window = nil
+        signInWeb = nil
         store?.reloadWeb()
     }
 }
