@@ -51,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private var bag = Set<AnyCancellable>()
     private var builtForSetup: Bool?
     private var builtExpired: Bool?
+    private var builtWithData: Bool?
 
     private static let menuWidth: CGFloat = 280
 
@@ -72,7 +73,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 guard let self else { return }
                 self.updateButton()
                 self.fitUsageView()
-                if self.builtForSetup != (self.store.source == nil) || self.builtExpired != self.store.claudeCodeExpired { self.rebuildMenu() }
+                if self.builtForSetup != (self.store.source == nil) || self.builtExpired != self.store.claudeCodeExpired
+                    || self.builtWithData != !self.store.windows.isEmpty { self.rebuildMenu() }
             }
             .store(in: &bag)
         NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
@@ -157,6 +159,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let setup = store.source == nil
         builtForSetup = setup
         builtExpired = store.claudeCodeExpired
+        builtWithData = !store.windows.isEmpty
         menu.removeAllItems()
 
         let usageItem = NSMenuItem()
@@ -185,6 +188,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 option("Switch to claude.ai Sign-In…",
                        detail: "Doesn't lapse when you don't use Claude Code.",
                        #selector(switchToClaudeAI))
+            } else if store.windows.isEmpty {
+                // Nothing has loaded yet: offer a way out instead of leaving people stuck.
+                option("Choose Another Way to Connect…",
+                       detail: "Disconnects, so you can pick a different sign-in option.",
+                       #selector(disconnect))
             }
         }
         menu.addItem(.separator())

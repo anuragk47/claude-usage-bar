@@ -10,9 +10,23 @@ struct UsageMenuView: View {
             if store.source == nil {
                 SetupText()
             } else if store.windows.isEmpty, case .loading = store.state {
-                HStack(spacing: 6) {
-                    ProgressView().controlSize(.small)
-                    Text("Loading usage…").foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        ProgressView().controlSize(.small)
+                        Text(store.waitingForKeychain ? "Waiting for keychain access…" : "Loading usage…")
+                            .foregroundStyle(.secondary)
+                    }
+                    if store.waitingForKeychain {
+                        Text("macOS is asking whether Claude Usage may use Claude Code's sign-in. Find that window (it may be behind others) and choose Always Allow.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.orange)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else if let since = store.loadingSince, Date().timeIntervalSince(since) > 10 {
+                        Text("This is taking longer than usual. If nothing appears soon, choose another way to connect below.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             } else {
                 if case .error(let message) = store.state {

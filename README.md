@@ -277,6 +277,14 @@ chmod +x build.sh
 </details>
 
 <details>
+<summary><b>It's stuck on "Loading usage…"</b></summary>
+
+- **Connected with Claude Code?** macOS is probably waiting for you to allow keychain access, and the prompt can open behind other windows. Look for it (Mission Control helps: swipe up with three fingers) and click **Always Allow**.
+- **Connected with claude.ai?** claude.ai may be slow or blocked on your network (VPNs and office networks can do this). The app gives up after about 30–45 seconds and tells you.
+- Either way, the menu offers **Choose Another Way to Connect…** while nothing has loaded, so you can switch to a different sign-in option.
+</details>
+
+<details>
 <summary><b>The menu says "Claude Code's sign-in has expired"</b></summary>
 
 Claude Code renews its sign-in only while you use it. Click the gauge and choose **Renew in Terminal…**: Terminal opens and starts Claude Code; once it has loaded, type `/exit`. Your numbers come back within a minute. If you rarely use Claude Code, choose **Switch to claude.ai Sign-In…** instead, so it doesn't happen again.

@@ -50,6 +50,14 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
     var weekly: [UsageWindow] { windows.filter { $0.id != "five_hour" } }
 
     private var timer: Timer?
+    /// When the current refresh started, so one that never answers can't block the app forever.
+    private var refreshStartedAt: Date?
+    /// Claude Code's keychain read is waiting on macOS's "allow access?" prompt.
+    @Published private(set) var waitingForKeychain = false
+    /// When the first load began (no numbers yet), to show a hint if it takes a while.
+    @Published private(set) var loadingSince: Date?
+    private var webLoadStartedAt: Date?
+    private var webLoadAttempts = 0
     private var backoffUntil: Date?
     private var backoffStep: TimeInterval = 0
     private var credentials: ClaudeCodeCredentials?
@@ -88,13 +96,26 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
     }
 
     func refresh() {
-        guard !isRefreshing else { return }
+        if isRefreshing {
+            // A request that has been going for over 45 s isn't coming back: drop it and try
+            // again. (Not while macOS is still asking for keychain access: that's the person's call.)
+            guard !waitingForKeychain, let started = refreshStartedAt,
+                  Date().timeIntervalSince(started) > 45 else { return }
+            isRefreshing = false
+            if windows.isEmpty { fail(source == .web
+                ? "claude.ai isn't responding. Check your internet connection, or choose another way to connect."
+                : "Anthropic isn't responding. Check your internet connection, then refresh.") }
+        }
         if let backoffUntil, backoffUntil > Date(), source != nil { return }
         guard let source else { state = .needsSetup; return }
-        if windows.isEmpty { state = .loading }
+        if windows.isEmpty {
+            if case .error = state {} else { state = .loading }
+            if loadingSince == nil { loadingSince = Date() }
+        }
         switch source {
         case .claudeCode:
             isRefreshing = true
+            refreshStartedAt = Date()
             Task { await refreshFromClaudeCode() }
         case .web:
             refreshFromWeb()
@@ -180,6 +201,8 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
 
     func signOut() {
         claudeCodeExpired = false
+        loadingSince = nil
+        isRefreshing = false
         credentials = nil
         windows = []
         account = nil
@@ -222,6 +245,8 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
         defer { isRefreshing = false }
         do {
             if credentials == nil || credentials!.isExpired {
+                waitingForKeychain = true
+                defer { waitingForKeychain = false }
                 credentials = try await Task.detached { try ClaudeCodeCredentials.read() }.value
             }
             guard let creds = credentials else { return }
@@ -281,35 +306,71 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
 
     func reloadWeb() {
         webReady = false
+        webLoadStartedAt = Date()
         if webView == nil { webView = makeWebView() }
         webView?.load(URLRequest(url: URL(string: "https://claude.ai/")!))
     }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         webReady = true
+        webLoadAttempts = 0
         refresh()
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-        fail(error.localizedDescription)
+        webLoadFailed(error)
+    }
+
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        webLoadFailed(error)
+    }
+
+    /// The hidden page's web process crashed: start it again.
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        reloadWeb()
+    }
+
+    private func webLoadFailed(_ error: Error) {
+        if (error as NSError).code == NSURLErrorCancelled { return } // a newer load replaced it
+        webLoadStartedAt = nil
+        if windows.isEmpty {
+            fail("Couldn't open claude.ai: \(error.localizedDescription) Check your internet connection, or choose another way to connect.")
+        } else {
+            softFail(error.localizedDescription)
+        }
     }
 
     private func refreshFromWeb() {
         guard let webView, webReady else {
-            if webView == nil { reloadWeb() }
+            if webView == nil || webLoadStartedAt == nil {
+                reloadWeb()
+            } else if let started = webLoadStartedAt, Date().timeIntervalSince(started) > 30 {
+                // claude.ai never finished loading: try again, and say so after a couple of tries.
+                webLoadAttempts += 1
+                if webLoadAttempts >= 2, windows.isEmpty {
+                    fail("claude.ai is taking too long to load. Check your internet connection (or VPN), or choose another way to connect.")
+                }
+                reloadWeb()
+            }
             return
         }
         isRefreshing = true
+        refreshStartedAt = Date()
         Task {
             defer { isRefreshing = false }
             let js = """
-            const o = await fetch('/api/organizations', {credentials: 'include'});
+            const get = (url) => {
+                const c = new AbortController();
+                const t = setTimeout(() => c.abort(), 20000);
+                return fetch(url, {credentials: 'include', signal: c.signal}).finally(() => clearTimeout(t));
+            };
+            const o = await get('/api/organizations');
             if (o.status === 401 || o.status === 403) return JSON.stringify({signedOut: true});
             if (!o.ok) return JSON.stringify({error: 'claude.ai answered HTTP ' + o.status});
             const orgs = await o.json();
             if (!Array.isArray(orgs) || orgs.length === 0) return JSON.stringify({signedOut: true});
             const org = orgs.find(x => (x.capabilities || []).includes('chat')) || orgs[0];
-            const u = await fetch('/api/organizations/' + org.uuid + '/usage', {credentials: 'include'});
+            const u = await get('/api/organizations/' + org.uuid + '/usage');
             if (u.status === 401 || u.status === 403) return JSON.stringify({signedOut: true});
             if (!u.ok) return JSON.stringify({error: 'The usage request failed (HTTP ' + u.status + ')'});
             return JSON.stringify({org: org.name, usage: await u.json()});
@@ -343,6 +404,7 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
         backoffStep = 0
         state = .ok
         claudeCodeExpired = false
+        loadingSince = nil
         setupMessage = nil
         login.close()
         notifyIfNeeded()
