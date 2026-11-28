@@ -1,15 +1,23 @@
 # Builds the .dmg on GitHub's Macs and attaches it to a GitHub Release.
 #
-# To publish a release: push a tag like v1.0.0
-#   git tag v1.0.0 && git push origin v1.0.0
-# or run this workflow by hand from the Actions tab (it then only uploads the .dmg as a
-# build artifact, without making a release).
+# To publish a release, either:
+#   - on GitHub: Releases → Draft a new release → new tag like v1.0.0 → Publish release, or
+#   - from git:  git tag v1.0.0 && git push origin v1.0.0
+# The .dmg is built on GitHub's Macs and attached to that release a few minutes later.
+# Running it by hand from the Actions tab only keeps the .dmg as a build artifact.
 name: Release
 
 on:
+  release:
+    types: [published]
   push:
     tags: ["v*"]
   workflow_dispatch:
+
+# Publishing a release on GitHub can fire both triggers; run them one after another.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -34,7 +42,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.dmg
-          generate_release_notes: true
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: ${{ github.event_name != 'release' }}
           body: |
             **Download `ClaudeUsage.dmg` below**, open it and drag Claude Usage to Applications.
 

@@ -324,7 +324,7 @@ A native AppKit + SwiftUI menu bar app (`NSStatusItem` with an `NSMenu`), no dep
 | `.github/workflows/release.yml` | On a `v*` tag, builds the .dmg on GitHub's Macs and attaches it to a Release |
 | `Resources/` | App icon: `AppIcon.icns` (used by the app), `AppIcon.png` (1024 px master) and `AppIcon-source.html` (its editable source) |
 
-To publish a new version: `git tag v1.0.1 && git push origin v1.0.1`.
+To publish a new version: on GitHub, **Releases → Draft a new release**, create a tag like `v1.0.1` and **Publish release** (or `git tag v1.0.1 && git push origin v1.0.1`). GitHub builds the .dmg and attaches it to the release within a few minutes.
 
 Issues and pull requests are welcome.
 
