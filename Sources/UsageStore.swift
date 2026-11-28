@@ -488,6 +488,9 @@ final class LoginController: NSObject, WKNavigationDelegate, WKUIDelegate, NSWin
         let win = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 700),
                            styleMask: [.titled, .closable, .resizable], backing: .buffered, defer: false)
         win.title = "Sign in to Claude"
+        // Light mode for this window only: in dark mode, Google's sign-in prompt (drawn inside
+        // claude.ai's page) gets a white box behind it because the two disagree on light/dark.
+        win.appearance = NSAppearance(named: .aqua)
         win.contentView = web
         win.isReleasedWhenClosed = false
         win.delegate = self
