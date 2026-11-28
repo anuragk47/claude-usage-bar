@@ -119,7 +119,7 @@ git clone https://github.com/anuragk47/claude-usage-bar.git && cd claude-usage-b
 
 The first time it opens, the menu drops down by itself and asks you to connect. Pick **one** option — Claude Code, claude.ai and the Claude apps all share the same limits, so any of them shows the same numbers.
 
-<p align="center"><img src="docs/images/setup.png" width="425" alt="The connect menu on first launch"></p>
+<p align="center"><img src="docs/images/setup.png" width="415" alt="The connect menu on first launch: Sign In to claude.ai (recommended), Use Claude Code on This Mac, Paste Session Key"></p>
 
 ### Option A — Sign In to claude.ai *(recommended)*
 
