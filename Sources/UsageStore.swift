@@ -131,7 +131,7 @@ final class UsageStore: NSObject, ObservableObject, WKNavigationDelegate {
             try script.write(to: url, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
             if let terminal = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal") {
-                NSWorkspace.shared.open([url], withApplicationAt: terminal, configuration: .init())
+                NSWorkspace.shared.open([url], withApplicationAt: terminal, configuration: NSWorkspace.OpenConfiguration())
             } else {
                 NSWorkspace.shared.open(url)
             }
