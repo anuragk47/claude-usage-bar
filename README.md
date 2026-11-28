@@ -59,7 +59,7 @@ Or go to the [Releases page](https://github.com/anuragk47/claude-usage-bar/relea
 
 ### Step 2 — Drag it to Applications
 
-Open **ClaudeUsage.dmg** from your Downloads folder. In the window that appears, drag **Claude Usage** onto the **Applications** folder.
+Open **ClaudeUsage.dmg** from your Downloads folder. A window like this appears: drag **Claude Usage** onto the **Applications** folder.
 
 <p align="center"><img src="docs/images/dmg.png" width="560" alt="Drag Claude Usage onto the Applications folder"></p>
 
@@ -321,8 +321,9 @@ A native AppKit + SwiftUI menu bar app (`NSStatusItem` with an `NSMenu`), no dep
 | `Sources/UsageStore.swift` | Fetching usage (Claude Code keychain token or claude.ai session), parsing, back-off, notifications, sign-in window |
 | `build.sh` | Builds and installs to `/Applications` |
 | `scripts/make-dmg.sh` | Builds a universal (Apple Silicon + Intel) app and `dist/ClaudeUsage.dmg` |
+| `scripts/dmg-settings.py` | Layout of the .dmg window for [dmgbuild](https://dmgbuild.readthedocs.io): size, icon positions, background |
 | `.github/workflows/release.yml` | On a `v*` tag, builds the .dmg on GitHub's Macs and attaches it to a Release |
-| `Resources/` | App icon: `AppIcon.icns` (used by the app), `AppIcon.png` (1024 px master) and `AppIcon-source.html` (its editable source) |
+| `Resources/` | App icon: `AppIcon.icns` (used by the app), `AppIcon.png` (1024 px master) and `AppIcon-source.html` (its editable source); `dmg-background.png` / `@2x` (the .dmg window, source in `dmg-background.html`) |
 
 To publish a new version: on GitHub, **Releases → Draft a new release**, create a tag like `v1.0.1` and **Publish release** (or `git tag v1.0.1 && git push origin v1.0.1`). GitHub builds the .dmg and attaches it to the release within a few minutes.
 
