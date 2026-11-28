@@ -55,7 +55,7 @@ No more opening Claude → Settings → Usage every time. A small gauge sits nex
 
 <p align="center"><a href="https://github.com/anuragk47/claude-usage-bar/releases/latest/download/ClaudeUsage.dmg"><b>⬇︎ Download ClaudeUsage.dmg</b></a></p>
 
-Or go to the [Releases page](https://github.com/anuragk47/claude-usage-bar/releases/latest) and click **ClaudeUsage.dmg** under *Assets*.
+Or go to the [Releases page](https://github.com/anuragk47/claude-usage-bar/releases/latest) and click **ClaudeUsage.dmg** under *Assets*. It works on both Apple Silicon (M1 and later) and Intel Macs.
 
 ### Step 2 — Drag it to Applications
 
@@ -84,21 +84,34 @@ You only do this once. A gauge appears in your menu bar and the menu opens so yo
 
 > **Why the warning?** Apple charges developers $99 a year to sign and notarize apps. This free app is open source instead: you can read every line of code in this repo, and the download is built from it automatically by GitHub.
 
-<details>
-<summary><b>Prefer to build it yourself from the source code?</b></summary>
+### Prefer Terminal? Build it from the source instead
 
-This needs Apple's free command-line tools and Terminal, but no security warning.
+Skip this if you used the .dmg above. Building it yourself avoids the security warning, but needs Apple's free command-line tools and a couple of Terminal commands.
 
-1. Click the green **Code** button at the top of this page → **Download ZIP**, and double-click the ZIP to unzip it.
-2. Open **Terminal** (⌘ Space, type *Terminal*, Return).
-3. Install Apple's command-line tools once: paste `xcode-select --install`, press Return and click **Install** (skip if it says "already installed").
-4. Type `cd ` (with a space), drag the unzipped folder into the Terminal window, and press Return.
-5. Paste `./build.sh` and press Return. After about 30 seconds the gauge appears in your menu bar.
+1. Click the green **Code** button at the top of this page → **Download ZIP**, then double-click the ZIP in Downloads to unzip it.
+2. Open **Terminal**: press **⌘ Command + Space**, type **Terminal**, press **Return**.
+3. Install Apple's command-line tools (one time only). Paste this and press **Return**, then click **Install** in the window that pops up. If it says **"already installed"**, carry on.
 
-<p align="center"><img src="docs/images/terminal.png" width="620" alt="Terminal after a successful build"></p>
+   ```bash
+   xcode-select --install
+   ```
 
-Or in one line: `git clone https://github.com/anuragk47/claude-usage-bar.git && cd claude-usage-bar && ./build.sh`
-</details>
+4. Type `cd` and a **space**, drag the unzipped **claude-usage-bar-main** folder into the Terminal window, and press **Return**.
+5. Build and install:
+
+   ```bash
+   ./build.sh
+   ```
+
+   After about 30 seconds you'll see **"Installed to /Applications/Claude Usage.app"** and the gauge appears in your menu bar.
+
+   <p align="center"><img src="docs/images/terminal.png" width="620" alt="Terminal after a successful build"></p>
+
+Comfortable with git? It's one line:
+
+```bash
+git clone https://github.com/anuragk47/claude-usage-bar.git && cd claude-usage-bar && ./build.sh
+```
 
 ---
 
@@ -309,7 +322,7 @@ A native AppKit + SwiftUI menu bar app (`NSStatusItem` with an `NSMenu`), no dep
 | `build.sh` | Builds and installs to `/Applications` |
 | `scripts/make-dmg.sh` | Builds a universal (Apple Silicon + Intel) app and `dist/ClaudeUsage.dmg` |
 | `.github/workflows/release.yml` | On a `v*` tag, builds the .dmg on GitHub's Macs and attaches it to a Release |
-| `Resources/` | App icon (`AppIcon.icns`, with its `AppIcon.svg` source) |
+| `Resources/` | App icon: `AppIcon.icns` (used by the app), `AppIcon.png` (1024 px master) and `AppIcon-source.html` (its editable source) |
 
 To publish a new version: `git tag v1.0.1 && git push origin v1.0.1`.
 
